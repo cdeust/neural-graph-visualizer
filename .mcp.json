@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "neural-graph-visualizer": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp-server/index.js"],
+      "env": {
+        "NGV_CONFIG": "${CLAUDE_PLUGIN_ROOT}/config/default.json"
+      }
+    }
+  }
+}

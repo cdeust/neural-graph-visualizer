@@ -1,0 +1,23 @@
+{
+  "name": "neural-graph-visualizer",
+  "version": "1.0.0",
+  "description": "Generic neural graph visualization — configurable 3D knowledge graph with Three.js, bloom, flow particles, and analytics",
+  "author": {
+    "name": "Clement Deust",
+    "email": "admin@ai-architect.tools"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/cdeust/neural-graph-visualizer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cdeust/neural-graph-visualizer.git"
+  },
+  "main": "mcp-server/index.js",
+  "scripts": {
+    "start": "node mcp-server/index.js",
+    "setup": "bash scripts/setup.sh"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

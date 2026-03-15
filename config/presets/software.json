@@ -1,0 +1,39 @@
+{
+  "name": "Software Development Map",
+  "accentColor": "#00d2ff",
+  "nodeTypes": {
+    "user":         { "color": "#00d2ff", "shape": "sphere", "label": "User" },
+    "feedback":     { "color": "#ff6b35", "shape": "sphere", "label": "Feedback" },
+    "project":      { "color": "#26de81", "shape": "sphere", "label": "Project" },
+    "reference":    { "color": "#a55eea", "shape": "sphere", "label": "Reference" },
+    "conversation": { "color": "#ff4081", "shape": "hex",    "label": "Conversation" }
+  },
+  "categoryRules": {
+    "bug-fix":       ["fix", "bug", "broken", "crash", "error", "issue", "regression", "failing"],
+    "feature":       ["add", "implement", "new", "build", "create", "introduce", "support"],
+    "refactor":      ["refactor", "restructure", "clean up", "simplify", "extract", "rename"],
+    "research":      ["research", "investigate", "explore", "evaluate", "compare", "analyze"],
+    "config":        ["config", "setup", "install", "environment", "settings", "dependency"],
+    "docs":          ["document", "readme", "changelog", "comment", "guide", "tutorial"],
+    "debug":         ["debug", "log", "trace", "inspect", "diagnose", "why is"],
+    "architecture":  ["architecture", "design", "pattern", "system", "module", "protocol"],
+    "deployment":    ["deploy", "ci/cd", "pipeline", "release", "docker", "publish", "production"],
+    "testing":       ["test", "spec", "assert", "mock", "coverage", "unit test"]
+  },
+  "categoryColors": {
+    "bug-fix": "#ff4444", "feature": "#44ff44", "refactor": "#44aaff",
+    "research": "#ffaa00", "config": "#888888", "docs": "#aaddff",
+    "debug": "#ff8800", "architecture": "#aa44ff", "deployment": "#00ddaa",
+    "testing": "#ffdd00", "general": "#666666"
+  },
+  "connectionRules": {
+    "sameProject":    0.3,
+    "sameType":       0.2,
+    "nameReference":  0.8,
+    "keywordOverlap": 0.1,
+    "temporalWindow": "24h"
+  },
+  "dataSources": [
+    { "type": "claudeMemory" }
+  ]
+}

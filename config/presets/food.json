@@ -1,0 +1,28 @@
+{
+  "name": "Food Safety & Supply Map",
+  "accentColor": "#26de81",
+  "nodeTypes": {
+    "ingredient":  { "color": "#26de81", "shape": "sphere", "label": "Ingredient" },
+    "product":     { "color": "#00d2ff", "shape": "hex",    "label": "Product" },
+    "supplier":    { "color": "#ff6b35", "shape": "sphere", "label": "Supplier" },
+    "test_result": { "color": "#a55eea", "shape": "sphere", "label": "Test Result" },
+    "recall":      { "color": "#ff4081", "shape": "hex",    "label": "Recall" }
+  },
+  "categoryRules": {
+    "quality":    ["haccp", "quality", "inspection", "audit"],
+    "allergen":   ["allergen", "gluten", "dairy", "nut", "soy"],
+    "supply":     ["supplier", "logistics", "warehouse", "import"],
+    "nutrition":  ["calories", "protein", "fat", "sugar", "fiber"]
+  },
+  "connectionRules": {
+    "sameProject":    0.3,
+    "sameType":       0.2,
+    "nameReference":  0.8,
+    "keywordOverlap": 0.1,
+    "temporalWindow": "24h"
+  },
+  "dataSources": [
+    { "type": "directory", "path": "./data", "pattern": "**/*.md" },
+    { "type": "jsonFile",  "path": "./data/graph.json" }
+  ]
+}

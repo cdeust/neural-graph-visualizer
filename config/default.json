@@ -1,0 +1,28 @@
+{
+  "name": "Neural Graph Visualizer",
+  "accentColor": "#00d2ff",
+  "nodeTypes": {
+    "entity":    { "color": "#00d2ff", "shape": "sphere", "label": "Entity" },
+    "document":  { "color": "#26de81", "shape": "sphere", "label": "Document" },
+    "process":   { "color": "#ff6b35", "shape": "hex",    "label": "Process" },
+    "reference": { "color": "#a55eea", "shape": "sphere", "label": "Reference" },
+    "event":     { "color": "#ff4081", "shape": "hex",    "label": "Event" }
+  },
+  "categoryRules": {
+    "analysis":    ["analyze", "review", "assess", "evaluate"],
+    "compliance":  ["regulation", "standard", "audit", "compliance"],
+    "production":  ["manufacture", "batch", "process", "production"],
+    "research":    ["study", "trial", "experiment", "research"]
+  },
+  "connectionRules": {
+    "sameProject":    0.3,
+    "sameType":       0.2,
+    "nameReference":  0.8,
+    "keywordOverlap": 0.1,
+    "temporalWindow": "24h"
+  },
+  "dataSources": [
+    { "type": "directory", "path": "./data", "pattern": "**/*.md" },
+    { "type": "jsonFile",  "path": "./data/graph.json" }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "Drug Development Map",
+  "accentColor": "#00d2ff",
+  "nodeTypes": {
+    "compound":       { "color": "#00d2ff", "shape": "sphere", "label": "Compound" },
+    "trial":          { "color": "#26de81", "shape": "hex",    "label": "Clinical Trial" },
+    "endpoint":       { "color": "#ff6b35", "shape": "sphere", "label": "Endpoint" },
+    "filing":         { "color": "#a55eea", "shape": "hex",    "label": "Regulatory Filing" },
+    "adverse_event":  { "color": "#ff4081", "shape": "sphere", "label": "Adverse Event" }
+  },
+  "categoryRules": {
+    "phase1":       ["dose-escalation", "safety", "pharmacokinetics"],
+    "phase2":       ["efficacy", "dose-response", "proof-of-concept"],
+    "phase3":       ["pivotal", "confirmatory", "endpoint"],
+    "manufacturing": ["formulation", "stability", "batch", "gmp"]
+  },
+  "connectionRules": {
+    "sameProject":    0.3,
+    "sameType":       0.2,
+    "nameReference":  0.8,
+    "keywordOverlap": 0.1,
+    "temporalWindow": "24h"
+  },
+  "dataSources": [
+    { "type": "directory", "path": "./data", "pattern": "**/*.md" },
+    { "type": "jsonFile",  "path": "./data/graph.json" }
+  ]
+}

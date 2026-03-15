@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Graph Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/theme.css">
+<script src="https://unpkg.com/three@0.137.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.137.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://unpkg.com/three@0.137.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://unpkg.com/three@0.137.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://unpkg.com/three@0.137.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://unpkg.com/three@0.137.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://unpkg.com/three@0.137.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://unpkg.com/three@0.137.0/examples/js/postprocessing/ShaderPass.js"></script>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo" id="logo-text">Neural Map</div>
+  <input type="text" id="search-box" placeholder="Search neural network...">
+  <div class="filter-bar" id="type-filter-bar"></div>
+  <button class="layout-toggle" id="layout-toggle" title="Toggle timeline/cluster layout (T)">Cluster</button>
+  <button class="analytics-toggle" id="analytics-toggle" title="Analytics dashboard (A)">Analytics</button>
+  <div class="stats" id="stats-bar"></div>
+</div>
+
+<div id="filter-row-2">
+  <div class="category-bar" id="category-bar">
+    <button class="cat-btn active" data-cat="all" style="--cat-color:#00d2ff">All</button>
+  </div>
+  <select id="thread-select"><option value="">All Threads</option></select>
+  <div class="status-bar">
+    <button class="filter-btn active" data-status="all" style="--type-color:#00d2ff">All</button>
+    <button class="filter-btn" data-status="active" style="--type-color:#26de81">Active</button>
+    <button class="filter-btn" data-status="archived" style="--type-color:#576574">Archived</button>
+    <button class="filter-btn" data-status="pinned" style="--type-color:#ffdd00">Pinned</button>
+  </div>
+</div>
+
+<div id="panel">
+  <button class="close-btn" id="panel-close">&times;</button>
+  <h2 id="panel-name"></h2>
+  <div class="type-badge" id="panel-type"></div>
+  <div class="project-name" id="panel-project"></div>
+  <div class="description" id="panel-desc"></div>
+  <div class="body-content" id="panel-body"></div>
+  <div class="meta-row" id="panel-meta"></div>
+  <div class="tag-pills" id="panel-tags"></div>
+  <div class="cross-ref-list" id="panel-crossrefs"></div>
+  <div class="status-indicator" id="panel-status"></div>
+</div>
+
+<div id="analytics-panel">
+  <div class="analytics-card">
+    <div class="analytics-title">Overview</div>
+    <div class="kpi-strip">
+      <div class="kpi-box"><div class="kpi-value" id="kpi-nodes">0</div><div class="kpi-label">Nodes</div></div>
+      <div class="kpi-box"><div class="kpi-value" id="kpi-edges">0</div><div class="kpi-label">Edges</div></div>
+      <div class="kpi-box"><div class="kpi-value" id="kpi-types">0</div><div class="kpi-label">Types</div></div>
+      <div class="kpi-box"><div class="kpi-value" id="kpi-projects">0</div><div class="kpi-label">Projects</div></div>
+    </div>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-title">Activity Heatmap</div>
+    <canvas id="chart-heatmap" height="120"></canvas>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-title">Activity Over Time</div>
+    <canvas id="chart-timeline" height="100"></canvas>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-title">Category Breakdown</div>
+    <canvas id="chart-categories" height="140"></canvas>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-title">Type Distribution</div>
+    <canvas id="chart-types" height="140"></canvas>
+  </div>
+  <div class="analytics-card">
+    <div class="analytics-title">Project Coverage</div>
+    <canvas id="chart-projects" height="140"></canvas>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+<div id="chart-tooltip"></div>
+<div id="legend"></div>
+
+<script>
+/*__GRAPH_DATA__*/
+</script>
+<script>
+/*__NGV_CONFIG__*/
+</script>
+<script src="/js/main.js"></script>
+</body>
+</html>
