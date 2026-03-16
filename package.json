@@ -15,7 +15,9 @@
   "main": "mcp-server/index.js",
   "scripts": {
     "start": "node mcp-server/index.js",
-    "setup": "bash scripts/setup.sh"
+    "setup": "bash scripts/setup.sh",
+    "launch": "node scripts/launch.js",
+    "create": "node scripts/create-research.js"
   },
   "engines": {
     "node": ">=18.0.0"

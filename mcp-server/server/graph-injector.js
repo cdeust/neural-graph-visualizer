@@ -13,6 +13,7 @@ function injectGraphData(html, graphData, config) {
     nodeTypes: config.nodeTypes,
     categoryColors: config.categoryColors || {},
     typeColors: config.typeColors || {},
+    layout: config.layout || null,
   };
 
   html = html.replace(

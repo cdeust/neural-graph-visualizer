@@ -1,8 +1,9 @@
-function createIndexTools(config, dataDeps) {
-  const { loadFromSources } = dataDeps.dataSourceFactory;
-  const { loadBrainIndex, saveBrainIndex, ensureIndexed, enrichNodes } = dataDeps.brainIndex;
-  const { createCategorizer } = dataDeps.categorizer;
-  const { autoTag } = dataDeps.tagger;
+const { loadFromSources } = require("../data/data-source-factory");
+const { loadBrainIndex, saveBrainIndex, simpleHash, ensureIndexed } = require("../index/brain-index");
+const { createCategorizer } = require("../index/categorizer");
+const { autoTag } = require("../index/tagger");
+
+function createIndexTools(config) {
   const categorizer = createCategorizer(config);
 
   return {
@@ -23,7 +24,6 @@ function createIndexTools(config, dataDeps) {
         for (const node of nodes) {
           const key = node.path || node.sessionId || node.id;
           const text = `${node.name} ${node.description || ""} ${node.body || ""}`;
-          const { simpleHash } = dataDeps.brainIndex;
           const hash = simpleHash(text);
 
           if (!index.nodes[key]) {

@@ -1,0 +1,43 @@
+{
+  "_config": {
+    "name": "Blank Research Graph",
+    "accentColor": "#00d2ff",
+    "nodeTypes": {
+      "concept":  { "color": "#45aaf2", "shape": "sphere", "label": "Concept" },
+      "entity":   { "color": "#26de81", "shape": "hex",    "label": "Entity" },
+      "process":  { "color": "#ff4081", "shape": "sphere", "label": "Process" }
+    }
+  },
+
+  "nodes": [
+    {
+      "id": "concept_1",
+      "name": "Your First Concept",
+      "type": "concept",
+      "project": "my-research",
+      "description": "Replace this with your concept description",
+      "body": "Add detailed notes, references, or context here."
+    },
+    {
+      "id": "entity_1",
+      "name": "Your First Entity",
+      "type": "entity",
+      "project": "my-research",
+      "description": "An entity in your domain",
+      "body": "Entities represent concrete things: proteins, drugs, genes, institutions."
+    },
+    {
+      "id": "process_1",
+      "name": "Your First Process",
+      "type": "process",
+      "project": "my-research",
+      "description": "A process or pathway",
+      "body": "Processes represent actions, transformations, or workflows."
+    }
+  ],
+
+  "edges": [
+    { "source": "concept_1", "target": "entity_1",  "weight": 0.8, "edgeType": "relates_to" },
+    { "source": "entity_1",  "target": "process_1", "weight": 0.7, "edgeType": "participates_in" }
+  ]
+}

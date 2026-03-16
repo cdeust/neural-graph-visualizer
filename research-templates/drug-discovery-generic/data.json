@@ -1,0 +1,129 @@
+{
+  "_config": {
+    "name": "Drug Discovery Pipeline",
+    "accentColor": "#a55eea",
+    "nodeTypes": {
+      "biology":    { "color": "#26de81", "shape": "hex",    "label": "Biology" },
+      "chemistry":  { "color": "#00d2ff", "shape": "sphere", "label": "Chemistry" },
+      "stage":      { "color": "#ff6b35", "shape": "hex",    "label": "Stage" },
+      "evidence":   { "color": "#ffaa00", "shape": "sphere", "label": "Evidence" },
+      "risk":       { "color": "#ff4081", "shape": "sphere", "label": "Risk" }
+    },
+    "_layout": { "strategy": "pipeline" }
+  },
+
+  "nodes": [
+    {
+      "id": "target",
+      "name": "Target",
+      "type": "biology",
+      "project": "drug-pipeline",
+      "description": "Validated biological target (protein, receptor, pathway)",
+      "body": "The molecular entity whose modulation is hypothesized to produce a therapeutic effect. Validated by genetic evidence, expression data, and functional assays."
+    },
+    {
+      "id": "moa",
+      "name": "Mechanism of Action",
+      "type": "biology",
+      "project": "drug-pipeline",
+      "description": "How the drug modulates the target",
+      "body": "The biochemical interaction through which a drug produces its pharmacological effect. Examples: enzyme inhibition, receptor agonism/antagonism, protein degradation."
+    },
+    {
+      "id": "biomarker",
+      "name": "Biomarker",
+      "type": "evidence",
+      "project": "drug-pipeline",
+      "description": "Measurable indicator of drug activity or patient selection",
+      "body": "Used for patient stratification, pharmacodynamic monitoring, and efficacy endpoints. Types: predictive (selects patients), prognostic (disease outcome), pharmacodynamic (drug activity)."
+    },
+    {
+      "id": "hit",
+      "name": "Hit Compound",
+      "type": "chemistry",
+      "project": "drug-pipeline",
+      "description": "Initial active compound from screening",
+      "body": "Identified via high-throughput screening (HTS), fragment-based drug design, or virtual screening. Typically micromolar potency. Must be validated and confirmed as a starting point for optimization."
+    },
+    {
+      "id": "lead",
+      "name": "Lead Compound",
+      "type": "chemistry",
+      "project": "drug-pipeline",
+      "description": "Optimized compound with drug-like properties",
+      "body": "Hit compound optimized for potency, selectivity, ADMET properties, and synthetic accessibility. Passes Lipinski Rule of Five criteria. Ready for preclinical evaluation."
+    },
+    {
+      "id": "preclinical",
+      "name": "Preclinical",
+      "type": "stage",
+      "project": "drug-pipeline",
+      "description": "In vitro and in vivo studies before human trials",
+      "body": "Includes pharmacokinetics, toxicology (acute and chronic), safety pharmacology, and efficacy in animal models. Required for IND filing. Typical duration: 1-2 years."
+    },
+    {
+      "id": "phase1",
+      "name": "Phase I Trial",
+      "type": "stage",
+      "project": "drug-pipeline",
+      "description": "First-in-human — safety and dose finding",
+      "body": "20-100 healthy volunteers or patients. Primary: safety, tolerability, pharmacokinetics. Dose escalation (3+3 or Bayesian designs). Determines MTD and recommended Phase II dose. Duration: 6-12 months."
+    },
+    {
+      "id": "phase2",
+      "name": "Phase II Trial",
+      "type": "stage",
+      "project": "drug-pipeline",
+      "description": "Proof of concept — efficacy and dose optimization",
+      "body": "100-300 patients. Primary: efficacy signal, dose-response. Randomized, often placebo-controlled. Go/no-go decision point. Highest attrition rate in development. Duration: 1-2 years."
+    },
+    {
+      "id": "phase3",
+      "name": "Phase III Trial",
+      "type": "stage",
+      "project": "drug-pipeline",
+      "description": "Pivotal — confirmatory efficacy and safety",
+      "body": "1000-5000+ patients. Randomized, double-blind, controlled. Primary endpoint must be clinically meaningful. Required for NDA/BLA submission. Duration: 2-4 years. Cost: $50M-$300M+."
+    },
+    {
+      "id": "approval",
+      "name": "Regulatory Approval",
+      "type": "stage",
+      "project": "drug-pipeline",
+      "description": "FDA/EMA review and market authorization",
+      "body": "NDA (small molecules) or BLA (biologics) submission. Standard review: 10-12 months. Priority review: 6-8 months. Accelerated approval possible with surrogate endpoints. Post-marketing commitments required."
+    },
+    {
+      "id": "adverse_event",
+      "name": "Adverse Event",
+      "type": "risk",
+      "project": "drug-pipeline",
+      "description": "Unwanted drug effect that may halt development",
+      "body": "On-target (mechanism-related) or off-target toxicity. Dose-limiting toxicities set therapeutic window. Hepatotoxicity, cardiotoxicity, and neurotoxicity are common development-ending events."
+    },
+    {
+      "id": "attrition",
+      "name": "Attrition / Failure",
+      "type": "risk",
+      "project": "drug-pipeline",
+      "description": "Program termination due to insufficient efficacy or safety",
+      "body": "Overall success rate from Phase I to approval: ~10%. Top reasons: lack of efficacy (40-50%), safety/toxicity (30%), commercial viability (10-20%). Phase II has highest failure rate."
+    }
+  ],
+
+  "edges": [
+    { "source": "target",     "target": "moa",            "weight": 0.9,  "edgeType": "validates" },
+    { "source": "moa",        "target": "hit",            "weight": 0.8,  "edgeType": "proceeds_to" },
+    { "source": "hit",        "target": "lead",           "weight": 0.8,  "edgeType": "proceeds_to" },
+    { "source": "lead",       "target": "preclinical",    "weight": 0.9,  "edgeType": "proceeds_to" },
+    { "source": "preclinical","target": "phase1",          "weight": 0.8,  "edgeType": "proceeds_to" },
+    { "source": "phase1",     "target": "phase2",          "weight": 0.7,  "edgeType": "proceeds_to" },
+    { "source": "phase2",     "target": "phase3",          "weight": 0.5,  "edgeType": "proceeds_to" },
+    { "source": "phase3",     "target": "approval",        "weight": 0.6,  "edgeType": "proceeds_to" },
+    { "source": "biomarker",  "target": "target",          "weight": 0.7,  "edgeType": "validates" },
+    { "source": "biomarker",  "target": "phase2",          "weight": 0.6,  "edgeType": "measured_by" },
+    { "source": "adverse_event","target": "phase1",        "weight": 0.7,  "edgeType": "causes" },
+    { "source": "adverse_event","target": "attrition",     "weight": 0.8,  "edgeType": "causes" },
+    { "source": "attrition",  "target": "phase2",          "weight": 0.7,  "edgeType": "causes" }
+  ]
+}

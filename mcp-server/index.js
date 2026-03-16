@@ -3,11 +3,6 @@
 // Zero-dependency Node.js, stdio JSON-RPC 2.0
 
 const { loadConfig } = require("./config-loader");
-const { loadFromSources } = require("./data/data-source-factory");
-const { buildConnections, buildTemporalEdges } = require("./graph/connection-builder");
-const brainIndex = require("./index/brain-index");
-const { createCategorizer } = require("./index/categorizer");
-const { autoTag } = require("./index/tagger");
 const { startUIServer, getActiveServer } = require("./server/http-server");
 const { createGraphTools } = require("./tools/graph-tools");
 const { createImportTools } = require("./tools/import-tools");
@@ -16,20 +11,11 @@ const { createIndexTools } = require("./tools/index-tools");
 
 const config = loadConfig();
 
-const dataDeps = {
-  dataSourceFactory: { loadFromSources },
-  connectionBuilder: { buildConnections, buildTemporalEdges },
-  brainIndex,
-  categorizer: { createCategorizer },
-  tagger: { autoTag },
-  httpServer: { startUIServer },
-};
-
 const TOOLS = {
-  ...createGraphTools(config, dataDeps),
-  ...createImportTools(config, dataDeps),
-  ...createVisualizationTools(config, dataDeps),
-  ...createIndexTools(config, dataDeps),
+  ...createGraphTools(config),
+  ...createImportTools(config),
+  ...createVisualizationTools(config, { httpServer: { startUIServer } }),
+  ...createIndexTools(config),
 };
 
 const SERVER_INFO = { name: "neural-graph-visualizer", version: "1.0.0" };

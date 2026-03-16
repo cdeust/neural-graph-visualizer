@@ -1,10 +1,10 @@
-function createGraphTools(config, dataDeps) {
-  const { loadFromSources } = dataDeps.dataSourceFactory;
-  const { buildConnections, buildTemporalEdges } = dataDeps.connectionBuilder;
-  const { ensureIndexed, enrichNodes } = dataDeps.brainIndex;
-  const { createCategorizer } = dataDeps.categorizer;
-  const { autoTag } = dataDeps.tagger;
+const { buildGraphFromConfig } = require("../pipeline");
+const { loadFromSources } = require("../data/data-source-factory");
+const { ensureIndexed } = require("../index/brain-index");
+const { createCategorizer } = require("../index/categorizer");
+const { autoTag } = require("../index/tagger");
 
+function createGraphTools(config) {
   const categorizer = createCategorizer(config);
 
   return {
@@ -17,36 +17,13 @@ function createGraphTools(config, dataDeps) {
         },
         required: [],
       },
-      handler: async ({ source } = {}) => {
-        const { nodes, edges: sourceEdges } = loadFromSources(config);
-        const autoEdges = buildConnections(nodes, config);
-        const temporalEdges = buildTemporalEdges(nodes, config);
-        const allEdges = [...sourceEdges, ...autoEdges, ...temporalEdges];
-
-        const index = ensureIndexed(nodes, categorizer, autoTag);
-        const enriched = enrichNodes(nodes, index);
-
-        // Add cross-reference edges
-        const nodeIdByKey = {};
-        for (const n of nodes) {
-          const key = n.path || n.sessionId || n.id;
-          nodeIdByKey[key] = n.id;
-        }
-        for (const [key, entry] of Object.entries(index.nodes)) {
-          if (entry.crossRefs && nodeIdByKey[key]) {
-            for (const ref of entry.crossRefs) {
-              if (nodeIdByKey[ref]) {
-                allEdges.push({ source: nodeIdByKey[key], target: nodeIdByKey[ref], weight: 1.0, edgeType: "cross-ref" });
-              }
-            }
-          }
-        }
-
+      handler: async () => {
+        const { graphData, stats } = buildGraphFromConfig(config);
         return {
-          nodes: enriched.map(({ body, _filePath, ...rest }) => rest),
-          edges: allEdges,
-          totalNodes: enriched.length,
-          totalEdges: allEdges.length,
+          nodes: graphData.nodes.map(({ body, _filePath, ...rest }) => rest),
+          edges: graphData.edges,
+          totalNodes: stats.nodes,
+          totalEdges: stats.totalEdges,
         };
       },
     },

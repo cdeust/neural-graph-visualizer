@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Molecular Structure Viewer — Neural Graph Visualizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Three.js core + addons (same version as graph) -->
+  <script src="https://unpkg.com/three@0.137.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.137.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://unpkg.com/three@0.137.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://unpkg.com/three@0.137.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://unpkg.com/three@0.137.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://unpkg.com/three@0.137.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://unpkg.com/three@0.137.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="https://unpkg.com/three@0.137.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://unpkg.com/three@0.137.0/examples/js/renderers/CSS2DRenderer.js"></script>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #030508;
+      color: #c8d6e5;
+      font-family: 'JetBrains Mono', monospace;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ── Header ── */
+    .mol-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      background: rgba(3,5,8,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,210,255,0.08);
+      z-index: 50;
+    }
+
+    .mol-header .logo {
+      font-size: 14px;
+      font-weight: 600;
+      color: #00d2ff;
+      text-shadow: 0 0 20px rgba(0,210,255,0.4);
+      letter-spacing: 1px;
+    }
+
+    .mol-header .logo span { color: #c8d6e5; font-weight: 300; }
+
+    /* ── Layout ── */
+    .mol-layout {
+      display: flex;
+      height: 100vh;
+      padding-top: 48px;
+    }
+
+    /* ── Viewport ── */
+    #mol-viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+      height: calc(100vh - 48px);
+    }
+
+    /* ── Control Panel ── */
+    #mol-panel {
+      width: 300px;
+      min-width: 300px;
+      height: calc(100vh - 48px);
+      overflow-y: auto;
+      background: rgba(3,5,8,0.92);
+      backdrop-filter: blur(30px);
+      border-left: 1px solid rgba(0,210,255,0.08);
+      padding: 16px;
+    }
+
+    #mol-panel::-webkit-scrollbar { width: 4px; }
+    #mol-panel::-webkit-scrollbar-track { background: transparent; }
+    #mol-panel::-webkit-scrollbar-thumb { background: rgba(0,210,255,0.15); border-radius: 2px; }
+
+    .mol-panel-section {
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(0,210,255,0.06);
+    }
+
+    .mol-panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #00d2ff;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+
+    .mol-panel-subtitle {
+      font-size: 11px;
+      color: #7a8a9a;
+      letter-spacing: 1px;
+    }
+
+    .mol-panel-label {
+      font-size: 10px;
+      color: #3a4a5a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .mol-panel-stats {
+      font-size: 11px;
+      color: #7a8a9a;
+      line-height: 1.6;
+    }
+
+    /* ── Buttons ── */
+    .mol-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .mol-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 4px 8px;
+      background: rgba(0,210,255,0.04);
+      color: #7a8a9a;
+      border: 1px solid rgba(0,210,255,0.1);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mol-btn:hover {
+      background: rgba(0,210,255,0.08);
+      color: #c8d6e5;
+      border-color: rgba(0,210,255,0.2);
+    }
+
+    .mol-btn.active {
+      background: rgba(0,210,255,0.15);
+      color: #00d2ff;
+      border-color: rgba(0,210,255,0.3);
+    }
+
+    .mol-btn-wide {
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    /* ── Toggles ── */
+    .mol-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #7a8a9a;
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+
+    .mol-toggle input[type="checkbox"] {
+      accent-color: #00d2ff;
+    }
+
+    /* ── Input ── */
+    .mol-input {
+      width: 100%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 6px 8px;
+      background: rgba(0,210,255,0.04);
+      color: #c8d6e5;
+      border: 1px solid rgba(0,210,255,0.1);
+      border-radius: 4px;
+      outline: none;
+      margin-bottom: 6px;
+    }
+
+    .mol-input:focus {
+      border-color: rgba(0,210,255,0.3);
+      background: rgba(0,210,255,0.06);
+    }
+
+    /* ── Dropzone ── */
+    .mol-dropzone {
+      border: 2px dashed rgba(0,210,255,0.15);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      font-size: 11px;
+      color: #3a4a5a;
+      transition: all 0.3s;
+    }
+
+    .mol-dropzone.dragover {
+      border-color: rgba(0,210,255,0.4);
+      background: rgba(0,210,255,0.05);
+      color: #00d2ff;
+    }
+
+    /* ── Molecule list ── */
+    .mol-list-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #7a8a9a;
+      padding: 3px 0;
+    }
+
+    .mol-color-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .mol-list-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── Back link ── */
+    .mol-back-link {
+      font-size: 11px;
+      color: #3a4a5a;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .mol-back-link:hover { color: #00d2ff; }
+  </style>
+</head>
+<body>
+  <div class="mol-header">
+    <div class="logo">NEURAL GRAPH <span>// Molecule Viewer</span></div>
+  </div>
+
+  <div class="mol-layout">
+    <div id="mol-viewport"></div>
+    <div id="mol-panel"></div>
+  </div>
+
+  <!-- Molecule modules -->
+  <script src="/js/molecule/mol-pdb-parser.js"></script>
+  <script src="/js/molecule/mol-sdf-parser.js"></script>
+  <script src="/js/molecule/mol-smiles-parser.js"></script>
+  <script src="/js/molecule/mol-renderer.js"></script>
+  <script src="/js/molecule/mol-ribbon.js"></script>
+  <script src="/js/molecule/mol-labels.js"></script>
+  <script src="/js/molecule/mol-picker.js"></script>
+  <script src="/js/molecule/mol-superpose.js"></script>
+  <script src="/js/molecule/mol-controls.js"></script>
+  <script src="/js/molecule/mol-viewer.js"></script>
+
+  <script>
+    window.addEventListener('error', function(e) {
+      var d = document.createElement('div');
+      d.style.cssText = 'position:fixed;top:48px;left:0;right:300px;background:rgba(255,0,0,0.9);color:#fff;padding:16px;z-index:9999;font:12px monospace;white-space:pre-wrap';
+      d.textContent = 'ERROR: ' + e.message + '\n' + (e.filename || '').split('/').pop() + ':' + (e.lineno || '');
+      document.body.appendChild(d);
+    });
+    window.addEventListener('load', function() {
+      try {
+        MolViewer.init();
+      } catch(e) {
+        var d = document.createElement('div');
+        d.style.cssText = 'position:fixed;top:48px;left:0;right:300px;background:rgba(255,0,0,0.9);color:#fff;padding:16px;z-index:9999;font:12px monospace;white-space:pre-wrap';
+        d.textContent = 'INIT ERROR: ' + e.message + '\n' + e.stack;
+        document.body.appendChild(d);
+      }
+    });
+  </script>
+</body>
+</html>

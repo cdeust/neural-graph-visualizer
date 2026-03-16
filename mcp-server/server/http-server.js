@@ -6,7 +6,7 @@ const { injectGraphData } = require("./graph-injector");
 let activeServer = null;
 let idleTimer = null;
 
-function startUIServer(graphData, config) {
+function startUIServer(graphData, config, options) {
   return new Promise((resolve, reject) => {
     if (activeServer) {
       resetIdleTimer();
@@ -66,6 +66,20 @@ function startUIServer(graphData, config) {
         return;
       }
 
+      // Serve molecule viewer page
+      if (url.pathname === "/molecule.html") {
+        const molPath = path.join(__dirname, "..", "..", "ui", "molecule.html");
+        try {
+          const molHtml = fs.readFileSync(molPath, "utf-8");
+          res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+          res.end(molHtml);
+        } catch (_) {
+          res.writeHead(404);
+          res.end("Not found");
+        }
+        return;
+      }
+
       // Serve CSS file
       if (url.pathname === "/css/theme.css") {
         const cssPath = path.join(__dirname, "..", "..", "ui", "css", "theme.css");
@@ -94,14 +108,31 @@ function startUIServer(graphData, config) {
         return;
       }
 
+      // Serve data files (molecules, etc.) — 404 if not found
+      if (url.pathname.startsWith("/data/")) {
+        const dataPath = path.join(__dirname, "..", "..", url.pathname);
+        try {
+          const data = fs.readFileSync(dataPath);
+          const ext = path.extname(dataPath).toLowerCase();
+          const mimeTypes = { ".pdb": "chemical/x-pdb", ".sdf": "chemical/x-mdl-sdfile", ".mol": "chemical/x-mdl-molfile", ".json": "application/json" };
+          res.writeHead(200, { "Content-Type": mimeTypes[ext] || "application/octet-stream" });
+          res.end(data);
+        } catch (_) {
+          res.writeHead(404);
+          res.end("Not found");
+        }
+        return;
+      }
+
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" });
       res.end(html);
     });
 
-    server.listen(0, "127.0.0.1", () => {
-      const port = server.address().port;
-      const url = `http://127.0.0.1:${port}`;
-      activeServer = { server, url, port };
+    const requestedPort = (options && options.port) || 0;
+    server.listen(requestedPort, "127.0.0.1", () => {
+      const assignedPort = server.address().port;
+      const url = `http://127.0.0.1:${assignedPort}`;
+      activeServer = { server, url, port: assignedPort };
       resetIdleTimer();
       resolve(url);
     });

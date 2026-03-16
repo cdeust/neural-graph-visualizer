@@ -1,13 +1,8 @@
-const { loadJsonGraph } = require("../data/json-loader");
+const { buildGraphFromFile } = require("../pipeline");
 const { loadNodesCsv, loadEdgesCsv } = require("../data/csv-loader");
+const { buildGraphData } = require("../pipeline");
 
-function createImportTools(config, dataDeps) {
-  const { buildConnections } = dataDeps.connectionBuilder;
-  const { ensureIndexed, enrichNodes } = dataDeps.brainIndex;
-  const { createCategorizer } = dataDeps.categorizer;
-  const { autoTag } = dataDeps.tagger;
-  const categorizer = createCategorizer(config);
-
+function createImportTools(config) {
   return {
     import_json: {
       description: "Import a graph from a JSON file with { nodes: [...], edges: [...] }",
@@ -20,19 +15,14 @@ function createImportTools(config, dataDeps) {
         required: ["path"],
       },
       handler: async ({ path: filePath }) => {
-        const { nodes, edges } = loadJsonGraph(filePath);
-        if (nodes.length === 0) {
+        const { stats } = buildGraphFromFile(filePath);
+        if (stats.nodes === 0) {
           return { error: "No nodes found in file", path: filePath };
         }
-        const autoEdges = buildConnections(nodes, config);
-        const allEdges = [...edges, ...autoEdges];
-        const index = ensureIndexed(nodes, categorizer, autoTag);
-        const enriched = enrichNodes(nodes, index);
-
         return {
           imported: true,
-          nodes: enriched.length,
-          edges: allEdges.length,
+          nodes: stats.nodes,
+          edges: stats.totalEdges,
           path: filePath,
         };
       },
@@ -56,15 +46,12 @@ function createImportTools(config, dataDeps) {
           return { error: "No nodes found in CSV", path: nodes_path };
         }
 
-        const autoEdges = buildConnections(nodes, config);
-        const allEdges = [...edges, ...autoEdges];
-        const index = ensureIndexed(nodes, categorizer, autoTag);
-        const enriched = enrichNodes(nodes, index);
+        const { stats } = buildGraphData(nodes, edges, config);
 
         return {
           imported: true,
-          nodes: enriched.length,
-          edges: allEdges.length,
+          nodes: stats.nodes,
+          edges: stats.totalEdges,
           nodesPath: nodes_path,
           edgesPath: edges_path || null,
         };

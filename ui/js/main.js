@@ -549,9 +549,383 @@ function applyTimelineLayout3D() {
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// PATHWAY-AWARE LAYOUT SYSTEM
+// ═══════════════════════════════════════════════════════════════════
+
+var FLOW_EDGE_TYPES = ['activation', 'production', 'differentiation', 'proceeds_to', 'validates',
+  'recruitment', 'amplification', 'transcription', 'intracellular_signaling', 'causes'];
+var INHIBIT_EDGE_TYPES = ['inhibition'];
+var PROXIMITY_EDGE_TYPES = ['binding', 'expression', 'synergy', 'measured_by', 'relates_to', 'participates_in'];
+
+function detectLayoutStrategy(edges) {
+  // Only consider edges with explicit edgeType (not auto-generated)
+  var typed = edges.filter(function(e) { return !!e.edgeType; });
+  if (!typed.length) return 'force';
+  var flowCount = 0, pipelineCount = 0;
+  for (var i = 0; i < typed.length; i++) {
+    var et = typed[i].edgeType;
+    if (FLOW_EDGE_TYPES.indexOf(et) >= 0) flowCount++;
+    if (et === 'proceeds_to') pipelineCount++;
+  }
+  var flowRatio = flowCount / typed.length;
+  if (pipelineCount > 0 && pipelineCount >= typed.length * 0.15) return 'pipeline';
+  if (flowRatio > 0.4) return 'cascade';
+  return 'force';
+}
+
+function computeTopologicalRanks() {
+  // Build directed adjacency from FLOW edges only (explicit edgeType only)
+  var adj = {};    // source -> [target]
+  var inDeg = {};  // node id -> in-degree from flow edges
+  var outDeg = {}; // node id -> out-degree from flow edges
+  var inhibitTargets = {}; // drug/inhibitor source -> array of targets
+  var flowEdges = []; // only explicit flow edges
+
+  nodes.forEach(function(n) {
+    adj[n.id] = [];
+    inDeg[n.id] = 0;
+    outDeg[n.id] = 0;
+  });
+
+  edges.forEach(function(e) {
+    var et = e.edgeType || '';
+    if (!et) return; // skip auto-generated edges with no edgeType
+    if (FLOW_EDGE_TYPES.indexOf(et) >= 0) {
+      if (adj[e.source]) adj[e.source].push(e.target);
+      inDeg[e.target] = (inDeg[e.target] || 0) + 1;
+      outDeg[e.source] = (outDeg[e.source] || 0) + 1;
+      flowEdges.push(e);
+    }
+    if (INHIBIT_EDGE_TYPES.indexOf(et) >= 0) {
+      if (!inhibitTargets[e.source]) inhibitTargets[e.source] = [];
+      inhibitTargets[e.source].push(e.target);
+    }
+  });
+
+  // Find roots: in-degree 0 with outgoing flow edges
+  var roots = [];
+  nodes.forEach(function(n) {
+    if ((inDeg[n.id] || 0) === 0 && (outDeg[n.id] || 0) > 0) roots.push(n.id);
+  });
+
+  // --- PASS 1: Shortest-path BFS to assign preliminary ranks ---
+  // This handles cycles correctly — each node visited once
+  var prelim = {};
+  var bfsQueue = [];
+  roots.forEach(function(id) { prelim[id] = 0; bfsQueue.push(id); });
+  while (bfsQueue.length > 0) {
+    var current = bfsQueue.shift();
+    var neighbors = adj[current] || [];
+    for (var i = 0; i < neighbors.length; i++) {
+      var next = neighbors[i];
+      if (prelim[next] === undefined) {
+        prelim[next] = prelim[current] + 1;
+        bfsQueue.push(next);
+      }
+    }
+  }
+
+  // --- PASS 2: Remove back-edges (cycle-causing), then longest-path BFS ---
+  // Back-edge: source.rank >= target.rank (goes upstream or sideways)
+  var dagAdj = {};
+  nodes.forEach(function(n) { dagAdj[n.id] = []; });
+  for (var fi = 0; fi < flowEdges.length; fi++) {
+    var fe = flowEdges[fi];
+    var srcRank = prelim[fe.source];
+    var tgtRank = prelim[fe.target];
+    // Keep edge only if it goes downstream (source < target)
+    if (srcRank !== undefined && tgtRank !== undefined && srcRank < tgtRank) {
+      dagAdj[fe.source].push(fe.target);
+    } else if (srcRank === undefined || tgtRank === undefined) {
+      // Keep edges involving unranked nodes (disconnected from roots)
+      dagAdj[fe.source].push(fe.target);
+    }
+  }
+
+  // Longest-path BFS on the cycle-free DAG
+  var rank = {};
+  var queue = [];
+  roots.forEach(function(id) { rank[id] = 0; queue.push(id); });
+  var maxIter = nodes.length * nodes.length; // safe bound for DAG
+  var iterations = 0;
+  while (queue.length > 0 && iterations < maxIter) {
+    var current = queue.shift();
+    var neighbors = dagAdj[current] || [];
+    for (var i = 0; i < neighbors.length; i++) {
+      var next = neighbors[i];
+      var newRank = (rank[current] || 0) + 1;
+      if (rank[next] === undefined || newRank > rank[next]) {
+        rank[next] = newRank;
+        queue.push(next);
+      }
+    }
+    iterations++;
+  }
+
+  // Drug/inhibitor nodes: rank = their target's rank (for flanking)
+  for (var drugId in inhibitTargets) {
+    if (rank[drugId] !== undefined) continue; // already has flow rank
+    var targets = inhibitTargets[drugId];
+    var targetRanks = targets.map(function(t) { return rank[t]; }).filter(function(r) { return r !== undefined; });
+    if (targetRanks.length > 0) {
+      rank[drugId] = Math.round(targetRanks.reduce(function(a,b) { return a+b; }, 0) / targetRanks.length);
+    }
+  }
+
+  // Orphan nodes: median rank
+  var assigned = [];
+  for (var id in rank) { if (rank[id] !== undefined) assigned.push(rank[id]); }
+  assigned.sort(function(a,b) { return a-b; });
+  var medianRank = assigned.length > 0 ? assigned[Math.floor(assigned.length/2)] : 0;
+  nodes.forEach(function(n) {
+    if (rank[n.id] === undefined) rank[n.id] = medianRank;
+  });
+
+  // Node-level rank override
+  nodes.forEach(function(n) {
+    if (n.rank !== undefined && n.rank !== null) rank[n.id] = n.rank;
+  });
+
+  return { rank: rank, inhibitTargets: inhibitTargets };
+}
+
+function applyCascadeLayout3D(rankData) {
+  var rank = rankData.rank;
+  var inhibitTargets = rankData.inhibitTargets;
+  var maxRank = 0;
+  for (var id in rank) { if (rank[id] > maxRank) maxRank = rank[id]; }
+  if (maxRank === 0) maxRank = 1;
+
+  // Group nodes by rank layer
+  var layers = {};
+  nodes.forEach(function(n) {
+    var r = rank[n.id] || 0;
+    if (!layers[r]) layers[r] = [];
+    layers[r].push(n);
+  });
+
+  // Spacing: fixed gap per layer for clear separation
+  var layerGap = Math.min(80, 500 / maxRank);
+  var totalHeight = maxRank * layerGap;
+
+  // First pass: place flow nodes (non-drugs) layer by layer
+  for (var r in layers) {
+    var layer = layers[r];
+    var y = (totalHeight / 2) - r * layerGap; // top = high Y, bottom = low Y
+
+    // Separate inhibitors (drugs) from flow nodes for flanking
+    var flowNodes = [];
+    var drugNodes = [];
+    layer.forEach(function(n) {
+      if (inhibitTargets[n.id]) drugNodes.push(n);
+      else flowNodes.push(n);
+    });
+
+    // Place flow nodes in a circle within the layer
+    var radius = flowNodes.length <= 1 ? 0 : Math.max(25, flowNodes.length * 18);
+    flowNodes.forEach(function(n, i) {
+      if (flowNodes.length === 1) {
+        n.tx = 0; n.ty = y; n.tz = 0;
+      } else {
+        var angle = (i / flowNodes.length) * Math.PI * 2;
+        n.tx = Math.cos(angle) * radius;
+        n.ty = y;
+        n.tz = Math.sin(angle) * radius;
+      }
+    });
+
+    // Place drug nodes flanking their targets (deferred to second pass)
+    drugNodes.forEach(function(n) {
+      n.ty = y; // set Y now, X/Z in second pass
+      n._pendingDrug = true;
+    });
+  }
+
+  // Second pass: position drug nodes near their targets
+  nodes.forEach(function(n, ni) {
+    if (!n._pendingDrug) return;
+    delete n._pendingDrug;
+    var targets = inhibitTargets[n.id] || [];
+    var avgX = 0, avgZ = 0, tCount = 0;
+    targets.forEach(function(tid) {
+      var tn = nodeMap[tid];
+      if (tn) { avgX += tn.tx; avgZ += tn.tz; tCount++; }
+    });
+    if (tCount > 0) {
+      avgX /= tCount; avgZ /= tCount;
+      // Offset outward from target cluster center
+      var baseAngle = Math.atan2(avgZ, avgX);
+      var offsetAngle = baseAngle + Math.PI * 0.5 + (ni * 0.6);
+      var offsetDist = 45 + (ni % 4) * 18;
+      n.tx = avgX + Math.cos(offsetAngle) * offsetDist;
+      n.tz = avgZ + Math.sin(offsetAngle) * offsetDist;
+    } else {
+      n.tx = (Math.random() - 0.5) * 80;
+      n.tz = (Math.random() - 0.5) * 80;
+    }
+  });
+}
+
+function applyPipelineLayout3D(rankData) {
+  var rank = rankData.rank;
+  var inhibitTargets = rankData.inhibitTargets;
+  var maxRank = 0;
+  for (var id in rank) { if (rank[id] > maxRank) maxRank = rank[id]; }
+  if (maxRank === 0) maxRank = 1;
+
+  var layers = {};
+  nodes.forEach(function(n) {
+    var r = rank[n.id] || 0;
+    if (!layers[r]) layers[r] = [];
+    layers[r].push(n);
+  });
+
+  var xSpan = 600;
+  var yzSpread = 60;
+
+  for (var r in layers) {
+    var layer = layers[r];
+    var x = (r - maxRank / 2) * (xSpan / maxRank);
+
+    var flowNodes = [];
+    var drugNodes = [];
+    layer.forEach(function(n) {
+      if (inhibitTargets[n.id]) drugNodes.push(n);
+      else flowNodes.push(n);
+    });
+
+    flowNodes.forEach(function(n, i) {
+      var offset = (i - (flowNodes.length - 1) / 2) * yzSpread;
+      n.tx = x;
+      n.ty = offset * 0.5;
+      n.tz = offset;
+    });
+
+    drugNodes.forEach(function(n, i) {
+      var targets = inhibitTargets[n.id] || [];
+      var avgY = 0, avgZ = 0, tCount = 0;
+      targets.forEach(function(tid) {
+        var tn = nodeMap[tid];
+        if (tn && tn.tx !== undefined) {
+          avgY += tn.ty; avgZ += tn.tz; tCount++;
+        }
+      });
+      if (tCount > 0) {
+        n.tx = x;
+        n.ty = avgY / tCount + 30 + i * 20;
+        n.tz = avgZ / tCount + 30;
+      } else {
+        n.tx = x;
+        n.ty = (flowNodes.length + i) * yzSpread * 0.5;
+        n.tz = (flowNodes.length + i) * yzSpread;
+      }
+    });
+  }
+}
+
+function applyRadialLayout3D(rankData) {
+  var rank = rankData.rank;
+  var inhibitTargets = rankData.inhibitTargets;
+  var maxRank = 0;
+  for (var id in rank) { if (rank[id] > maxRank) maxRank = rank[id]; }
+  if (maxRank === 0) maxRank = 1;
+
+  var layers = {};
+  nodes.forEach(function(n) {
+    var r = rank[n.id] || 0;
+    if (!layers[r]) layers[r] = [];
+    layers[r].push(n);
+  });
+
+  var ringSpacing = 80;
+
+  for (var r in layers) {
+    var layer = layers[r];
+    var ringRadius = r * ringSpacing + 30;
+
+    layer.forEach(function(n, i) {
+      var angle = (i / layer.length) * Math.PI * 2;
+      var yJitter = (Math.random() - 0.5) * 30;
+      n.tx = Math.cos(angle) * ringRadius;
+      n.ty = yJitter;
+      n.tz = Math.sin(angle) * ringRadius;
+    });
+  }
+}
+
+function runConstrainedSettling(iterations) {
+  // Post-layout settling: constrained force (X/Z only, Y mostly fixed)
+  var N = nodes.length;
+  if (N === 0) return;
+  var k = 40;
+
+  for (var iter = 0; iter < iterations; iter++) {
+    var temp = 1 - iter / iterations;
+    var cooling = temp * 2;
+
+    for (var i = 0; i < N; i++) { nodes[i].vx = 0; nodes[i].vy = 0; nodes[i].vz = 0; }
+
+    // Repulsive forces (XZ plane only)
+    for (var i = 0; i < N; i++) {
+      for (var j = i + 1; j < N; j++) {
+        var dx = nodes[i].tx - nodes[j].tx;
+        var dz = nodes[i].tz - nodes[j].tz;
+        var dist = Math.sqrt(dx*dx + dz*dz) || 1;
+        if (dist > k * 4) continue;
+        var force = (k * k) / dist * 0.05;
+        var fx = (dx/dist) * force, fz = (dz/dist) * force;
+        nodes[i].vx += fx; nodes[i].vz += fz;
+        nodes[j].vx -= fx; nodes[j].vz -= fz;
+      }
+    }
+
+    for (var i = 0; i < N; i++) {
+      nodes[i].tx += nodes[i].vx * cooling;
+      nodes[i].tz += nodes[i].vz * cooling;
+      // Y stays mostly fixed — tiny jitter only
+      nodes[i].ty += nodes[i].vy * cooling * 0.05;
+    }
+  }
+}
+
+function applyPathwayLayout3D() {
+  var layoutConfig = ngvConfig.layout || {};
+  var strategy = layoutConfig.strategy || 'auto';
+
+  if (strategy === 'auto') {
+    strategy = detectLayoutStrategy(edges);
+  }
+
+  if (strategy === 'force') {
+    initPositions3D();
+    runForceLayout3D(200);
+    return;
+  }
+
+  var rankData = computeTopologicalRanks();
+
+  if (strategy === 'cascade') {
+    applyCascadeLayout3D(rankData);
+  } else if (strategy === 'pipeline') {
+    applyPipelineLayout3D(rankData);
+  } else if (strategy === 'radial') {
+    applyRadialLayout3D(rankData);
+  } else {
+    initPositions3D();
+    runForceLayout3D(200);
+    return;
+  }
+
+  // Post-layout settling to prevent overlap within layers
+  runConstrainedSettling(20);
+
+  // Copy tx/ty/tz to x/y/z for immediate positioning
+  nodes.forEach(function(n) { n.x = n.tx; n.y = n.ty; n.z = n.tz; });
+}
+
 // Initialize layout
-initPositions3D();
-runForceLayout3D(200);
+applyPathwayLayout3D();
 
 // Set mesh positions immediately
 nodes.forEach(function(n) {
@@ -775,10 +1149,31 @@ function openPanel(n) {
       var descEl = document.getElementById('panel-desc');
       descEl.textContent = data.description || data.summary || data.firstMessage || '(no description)';
       if (data.body) document.getElementById('panel-body').textContent = data.body;
+      appendMoleculeButton(n);
     })
     .catch(function() {
       document.getElementById('panel-desc').textContent = n.description || '(no description)';
+      appendMoleculeButton(n);
     });
+
+  function appendMoleculeButton(node) {
+    if (node.smiles || node.pdbId || node.moleculeFile || node.type === 'compound' || node.type === 'treatment' || node.type === 'drug') {
+      var molUrl = '/molecule.html?name=' + encodeURIComponent(node.name);
+      if (node.smiles) molUrl += '&smiles=' + encodeURIComponent(node.smiles);
+      if (node.pdbId) molUrl += '&pdb=' + encodeURIComponent(node.pdbId);
+      if (node.moleculeFile) molUrl += '&file=' + encodeURIComponent(node.moleculeFile);
+      var viewBtn = document.createElement('button');
+      viewBtn.className = 'layout-toggle';
+      viewBtn.textContent = 'View 3D Structure';
+      viewBtn.style.marginTop = '12px';
+      viewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(molUrl, '_blank');
+      });
+      document.getElementById('panel-body').appendChild(viewBtn);
+    }
+  }
 
   panel.classList.add('open');
 }
@@ -1076,12 +1471,16 @@ document.querySelectorAll('.status-bar .filter-btn').forEach(function(btn) {
 });
 
 // Layout toggle
+var layoutModes = ['cluster', 'timeline', 'pathway'];
+var layoutLabels = { cluster: 'Cluster', timeline: 'Timeline', pathway: 'Pathway' };
 function toggleLayout() {
-  layoutMode = layoutMode === 'cluster' ? 'timeline' : 'cluster';
+  var idx = layoutModes.indexOf(layoutMode);
+  layoutMode = layoutModes[(idx + 1) % layoutModes.length];
   var btn = document.getElementById('layout-toggle');
-  btn.textContent = layoutMode === 'cluster' ? 'Cluster' : 'Timeline';
-  btn.classList.toggle('active', layoutMode === 'timeline');
+  btn.textContent = layoutLabels[layoutMode];
+  btn.classList.toggle('active', layoutMode !== 'cluster');
   if (layoutMode === 'timeline') applyTimelineLayout3D();
+  else if (layoutMode === 'pathway') applyPathwayLayout3D();
   else { initPositions3D(); runForceLayout3D(200); }
 }
 
@@ -1443,3 +1842,69 @@ document.addEventListener('keydown', function(e) {
 
 applyFilters();
 animate();
+
+// ═══════════════════════════════════════════════════════════════════
+// NON-TEMPORAL DATA DETECTION
+// Hide timeline/session UI when data lacks meaningful timestamps
+// ═══════════════════════════════════════════════════════════════════
+(function() {
+  // Check if data has meaningful temporal spread (more than 1 day range)
+  var timestamps = nodes.map(function(n) { return new Date(n.modifiedAt || n.startedAt || 0).getTime(); })
+    .filter(function(t) { return t > 0; });
+  var range = timestamps.length > 1 ? Math.max.apply(null, timestamps) - Math.min.apply(null, timestamps) : 0;
+  var hasTemporalData = range > 86400000; // more than 1 day spread
+
+  // Check if any nodes have threadIds (session-based data)
+  var hasThreads = nodes.some(function(n) { return !!n.threadId; });
+
+  if (!hasTemporalData) {
+    // Show layout toggle but limit to cluster/pathway (skip timeline)
+    var layoutBtn = document.getElementById('layout-toggle');
+    if (layoutBtn) {
+      layoutBtn.style.display = '';
+      layoutBtn.textContent = layoutLabels[layoutMode] || 'Pathway';
+    }
+    // Remove timeline from cycle when no temporal data
+    layoutModes = ['cluster', 'pathway'];
+
+    // Hide thread dropdown — no sessions
+    var threadSelect = document.getElementById('thread-select');
+    if (threadSelect) threadSelect.style.display = 'none';
+
+    // Hide status filter bar — no active/archived/pinned distinction
+    var statusBar = document.querySelector('.status-bar');
+    if (statusBar) statusBar.style.display = 'none';
+
+    // Hide heatmap and timeline charts from analytics — they show nothing useful
+    var charts = document.querySelectorAll('#analytics-panel .analytics-card');
+    charts.forEach(function(card) {
+      var title = card.querySelector('.analytics-title');
+      if (title && (title.textContent === 'Activity Heatmap' || title.textContent === 'Activity Over Time')) {
+        card.style.display = 'none';
+      }
+    });
+
+    // Rename "Projects" KPI to "Groups" if only one project
+    var projects = {};
+    nodes.forEach(function(n) { projects[n.project] = true; });
+    if (Object.keys(projects).length <= 2) {
+      var kpiProjects = document.querySelector('#kpi-projects');
+      if (kpiProjects && kpiProjects.nextElementSibling) {
+        kpiProjects.nextElementSibling.textContent = 'Groups';
+      }
+    }
+
+    // Hide "Modified" date from panel since all nodes have today's date
+    var origOpenPanel = openPanel;
+    openPanel = function(n) {
+      origOpenPanel(n);
+      var metaEl = document.getElementById('panel-meta');
+      if (metaEl && !n.startedAt) metaEl.style.display = 'none';
+    };
+  }
+
+  if (!hasThreads) {
+    var threadSelect = document.getElementById('thread-select');
+    if (threadSelect) threadSelect.style.display = 'none';
+  }
+})();
