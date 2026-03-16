@@ -2,6 +2,10 @@
 
 Interactive 3D knowledge graph visualization with pathway-aware layouts, molecule viewer, and configurable templates. Built with Three.js — zero dependencies.
 
+![Pathway-Aware Cascade Layout](docs/assets/cascade-layout.png)
+
+![Molecule Viewer](docs/assets/molecule-viewer.png)
+
 ![cascade](https://img.shields.io/badge/layout-cascade-blue) ![pipeline](https://img.shields.io/badge/layout-pipeline-green) ![radial](https://img.shields.io/badge/layout-radial-orange) ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
 
 ## Installation
