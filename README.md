@@ -1,6 +1,6 @@
 # Neural Graph Visualizer
 
-Interactive 3D knowledge graph visualization with pathway-aware layouts, molecule viewer, and biomedical research templates. Built with Three.js — zero dependencies.
+Interactive 3D knowledge graph visualization with pathway-aware layouts, molecule viewer, and configurable templates. Built with Three.js — zero dependencies.
 
 ![cascade](https://img.shields.io/badge/layout-cascade-blue) ![pipeline](https://img.shields.io/badge/layout-pipeline-green) ![radial](https://img.shields.io/badge/layout-radial-orange) ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -39,14 +39,11 @@ Or ask Claude to visualize your data:
 ### From CLI
 
 ```bash
-# Launch a research template
-node scripts/launch.js research-templates/psoriasis/data.json
-
-# Launch the oncology pathway
-node scripts/launch.js research-templates/oncology-immunotherapy/data.json
-
-# Launch the drug discovery pipeline
+# Launch the example pipeline
 node scripts/launch.js research-templates/drug-discovery-generic/data.json
+
+# Launch the blank starter
+node scripts/launch.js research-templates/blank/data.json
 
 # Create your own from a template
 node scripts/create-research.js --template blank --name "My Study"
@@ -60,8 +57,8 @@ Nodes are positioned by topology, not just physics. The layout engine computes h
 
 | Strategy | Axis | Best For |
 |----------|------|----------|
-| **cascade** | Y (top → bottom) | Signaling pathways, immunotherapy cascades |
-| **pipeline** | X (left → right) | Drug discovery stages, clinical trials |
+| **cascade** | Y (top → bottom) | Signaling pathways, dependency chains |
+| **pipeline** | X (left → right) | Sequential stages, workflows |
 | **radial** | Center → out | Target-centric views, interaction networks |
 | **force** | Physics-based | Generic graphs, exploration |
 | **auto** | Detected | Picks strategy from edge type distribution |
@@ -81,16 +78,14 @@ Nodes with `pdbId` or `smiles` fields get a "View 3D Structure" button in the de
 - **Proteins/biologics** — PDB viewer with ribbon, ball-and-stick, and surface modes
 - **Small molecules** — SMILES-based 2D/3D rendering
 
-### Research Templates
+### Templates
 
-Ready-to-use biomedical datasets:
+| Template | Nodes | Layout | Description |
+|----------|-------|--------|-------------|
+| `drug-discovery-generic` | 11 | pipeline | Target → approval pipeline example |
+| `blank` | 3 | force | Starter template — replace with your data |
 
-| Template | Nodes | Edges | Layout | Description |
-|----------|-------|-------|--------|-------------|
-| `psoriasis` | 29 | 43 | cascade | Full immunopathology cascade with 13 biologics |
-| `oncology-immunotherapy` | 21 | 24 | cascade | PD-1/PD-L1 checkpoint pathway |
-| `drug-discovery-generic` | 11 | 12 | pipeline | Target → approval pipeline |
-| `blank` | 3 | 2 | force | Starter template |
+Use these as starting points. Copy, edit the JSON, and launch.
 
 ### Visual Features
 
@@ -99,7 +94,7 @@ Ready-to-use biomedical datasets:
 - **Holographic grid** — Animated floor grid
 - **Ambient dust** — 4000 floating particles for depth
 - **Hex/sphere shapes** — Config-driven per node type
-- **Analytics dashboard** — Activity heatmap, type distribution, project breakdown
+- **Analytics dashboard** — Type distribution, project breakdown
 
 ### Interaction
 
@@ -131,59 +126,73 @@ Available when installed as a Claude Code plugin:
 
 ## Data Format
 
-A research graph is a single JSON file:
+A graph is a single JSON file with three sections:
 
 ```json
 {
   "_config": {
-    "name": "My Research Graph",
+    "name": "My Graph",
     "accentColor": "#00d2ff",
     "nodeTypes": {
-      "protein": { "color": "#ff4081", "shape": "hex", "label": "Protein" },
-      "drug":    { "color": "#00d2ff", "shape": "sphere", "label": "Drug" }
+      "concept":  { "color": "#45aaf2", "shape": "sphere", "label": "Concept" },
+      "entity":   { "color": "#26de81", "shape": "hex",    "label": "Entity" },
+      "process":  { "color": "#ff4081", "shape": "sphere", "label": "Process" }
     },
-    "_layout": { "strategy": "cascade" }
+    "categoryRules": {
+      "group_a": ["keyword1", "keyword2"],
+      "group_b": ["keyword3", "keyword4"]
+    },
+    "_layout": { "strategy": "auto" }
   },
   "nodes": [
     {
-      "id": "egfr",
-      "name": "EGFR",
-      "type": "protein",
-      "description": "Epidermal growth factor receptor",
-      "tags": ["receptor", "tyrosine-kinase"],
-      "pdbId": "1NQL"
+      "id": "node_1",
+      "name": "My Node",
+      "type": "concept",
+      "project": "my-project",
+      "description": "Short summary shown on hover",
+      "body": "Detailed content shown in the side panel",
+      "tags": ["tag1", "tag2"],
+      "pdbId": "5DK3",
+      "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
     }
   ],
   "edges": [
     {
-      "source": "egfr",
-      "target": "erlotinib",
-      "weight": 0.95,
-      "edgeType": "inhibition"
+      "source": "node_1",
+      "target": "node_2",
+      "weight": 0.8,
+      "edgeType": "activation"
     }
   ]
 }
 ```
 
-### Edge Types for Layout
+### Node Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | yes | Unique identifier (used in edges) |
+| `name` | yes | Display name |
+| `type` | yes | Must match a key in `nodeTypes` |
+| `project` | no | Grouping label |
+| `description` | no | Short summary (hover tooltip) |
+| `body` | no | Full detail (side panel) |
+| `tags` | no | Array of keywords |
+| `pdbId` | no | PDB ID for 3D protein viewer |
+| `smiles` | no | SMILES string for molecule viewer |
+
+### Edge Types
 
 The layout engine classifies edges to compute topology:
 
 **Flow** (drives cascade/pipeline ordering): `activation`, `production`, `differentiation`, `proceeds_to`, `validates`, `recruitment`, `amplification`, `transcription`, `intracellular_signaling`, `causes`
 
-**Inhibition** (drugs flank their targets): `inhibition`
+**Inhibition** (positions nodes flanking their targets): `inhibition`
 
 **Proximity** (no layout effect): `binding`, `expression`, `synergy`, `measured_by`, `relates_to`, `participates_in`
 
-## Configuration
-
-### Environment Variable
-
-```bash
-NGV_CONFIG=./config/presets/psoriasis.json node mcp-server/index.js
-```
-
-### Layout Strategies
+### Layout Auto-Detection
 
 | Strategy | Auto-Detected When |
 |----------|-------------------|
@@ -192,6 +201,16 @@ NGV_CONFIG=./config/presets/psoriasis.json node mcp-server/index.js
 | `force` | Default fallback |
 
 Set `"strategy": "auto"` (or omit `_layout`) to let the system choose.
+
+## Configuration
+
+```bash
+# Set config via environment variable
+NGV_CONFIG=./my-config.json node mcp-server/index.js
+
+# Or use the launch script with any JSON file
+node scripts/launch.js my-data.json
+```
 
 ## Requirements
 

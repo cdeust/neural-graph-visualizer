@@ -38,11 +38,10 @@ cd neural-graph-visualizer
 
 ## Research Templates
 
-Launch pre-built datasets:
+Launch templates:
 ```bash
-node scripts/launch.js research-templates/psoriasis/data.json
-node scripts/launch.js research-templates/oncology-immunotherapy/data.json
 node scripts/launch.js research-templates/drug-discovery-generic/data.json
+node scripts/launch.js research-templates/blank/data.json
 ```
 
 ## Layout System
