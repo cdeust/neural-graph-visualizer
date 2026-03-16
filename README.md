@@ -2,8 +2,6 @@
 
 Interactive 3D knowledge graph visualization with pathway-aware layouts, molecule viewer, and configurable templates. Built with Three.js — zero dependencies.
 
-![Memory Monitoring — 685 nodes cluster view](docs/assets/memory-monitoring.png)
-
 ![Pathway-Aware Cascade Layout](docs/assets/cascade-layout.png)
 
 ![Molecule Viewer](docs/assets/molecule-viewer.png)
