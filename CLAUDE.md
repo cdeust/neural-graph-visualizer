@@ -6,7 +6,8 @@ Interactive 3D knowledge graph with pathway-aware layouts, molecule viewer, and 
 
 ### Via Marketplace (recommended)
 ```
-/install cdeust/neural-graph-visualizer
+/plugin marketplace add cdeust/neural-graph-visualizer
+/plugin install neural-graph-visualizer
 ```
 
 ### Manual Setup

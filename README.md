@@ -9,7 +9,8 @@ Interactive 3D knowledge graph visualization with pathway-aware layouts, molecul
 ### Claude Code Marketplace (recommended)
 
 ```
-/install cdeust/neural-graph-visualizer
+/plugin marketplace add cdeust/neural-graph-visualizer
+/plugin install neural-graph-visualizer
 ```
 
 ### Manual Setup
