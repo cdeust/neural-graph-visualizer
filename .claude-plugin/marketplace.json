@@ -6,13 +6,13 @@
     "name": "cdeust"
   },
   "metadata": {
-    "description": "Generic neural graph visualization — configurable 3D knowledge graph with Three.js, bloom, flow particles, and analytics dashboard"
+    "description": "Interactive 3D knowledge graph with pathway-aware layouts, molecule viewer, and biomedical research templates"
   },
   "plugins": [
     {
       "name": "neural-graph-visualizer",
       "source": "./",
-      "description": "Visualize any knowledge graph as an interactive 3D neural map with configurable node types, categories, and industry presets (healthcare, pharma, food, software)",
+      "description": "Visualize any knowledge graph as an interactive 3D neural map with pathway-aware layouts (cascade, pipeline, radial), molecule viewer (PDB/SMILES), biomedical research templates, and analytics dashboard",
       "author": {
         "name": "Clement Deust",
         "email": "admin@ai-architect.tools"
@@ -25,9 +25,10 @@
         "knowledge-graph",
         "neural-map",
         "analytics",
-        "healthcare",
-        "pharma",
-        "food-safety"
+        "biomedical",
+        "pathway",
+        "molecule-viewer",
+        "research"
       ]
     }
   ]
