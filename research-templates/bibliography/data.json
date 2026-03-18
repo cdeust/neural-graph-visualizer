@@ -1,0 +1,102 @@
+{
+  "_config": {
+    "name": "Bibliography Network",
+    "accentColor": "#4488ff",
+    "nodeTypes": {
+      "paper":    { "color": "#4488ff", "shape": "sphere", "label": "Paper" },
+      "author":   { "color": "#26de81", "shape": "hex",    "label": "Author" },
+      "journal":  { "color": "#ff6b35", "shape": "sphere", "label": "Journal" },
+      "keyword":  { "color": "#a55eea", "shape": "sphere", "label": "Keyword" }
+    }
+  },
+
+  "nodes": [
+    {
+      "id": "paper_seminal",
+      "name": "Foundational Study on X",
+      "type": "paper",
+      "project": "lit-review",
+      "description": "The original paper establishing the theoretical framework",
+      "year": 2015,
+      "citationCount": 450,
+      "doi": "10.1000/example.2015.001",
+      "authors": "Smith J, Doe A",
+      "journal": "Nature"
+    },
+    {
+      "id": "paper_review",
+      "name": "Comprehensive Review of X",
+      "type": "paper",
+      "project": "lit-review",
+      "description": "A systematic review covering 10 years of research",
+      "year": 2022,
+      "citationCount": 120,
+      "doi": "10.1000/example.2022.001",
+      "authors": "Johnson B et al.",
+      "journal": "Annual Reviews"
+    },
+    {
+      "id": "paper_methods",
+      "name": "Novel Method for Measuring Y",
+      "type": "paper",
+      "project": "lit-review",
+      "description": "Introduced the gold standard measurement technique",
+      "year": 2018,
+      "citationCount": 200,
+      "doi": "10.1000/example.2018.001",
+      "authors": "Lee C, Wang D",
+      "journal": "Science"
+    },
+    {
+      "id": "paper_recent",
+      "name": "Latest Findings on Z",
+      "type": "paper",
+      "project": "lit-review",
+      "description": "Cutting-edge results published this year",
+      "year": 2024,
+      "citationCount": 15,
+      "doi": "10.1000/example.2024.001",
+      "authors": "Garcia E et al.",
+      "journal": "Cell"
+    },
+    {
+      "id": "paper_replication",
+      "name": "Replication Study of X",
+      "type": "paper",
+      "project": "lit-review",
+      "description": "Large-scale replication confirming original findings",
+      "year": 2020,
+      "citationCount": 85,
+      "doi": "10.1000/example.2020.001",
+      "authors": "Kim F, Park G",
+      "journal": "PLOS ONE"
+    },
+    {
+      "id": "author_smith",
+      "name": "Prof. J. Smith",
+      "type": "author",
+      "project": "lit-review",
+      "description": "Pioneer in the field, h-index 45"
+    },
+    {
+      "id": "keyword_ml",
+      "name": "Machine Learning",
+      "type": "keyword",
+      "project": "lit-review",
+      "description": "Key methodology used across studies"
+    }
+  ],
+
+  "edges": [
+    { "source": "paper_review",      "target": "paper_seminal",    "weight": 0.9, "edgeType": "cites" },
+    { "source": "paper_review",      "target": "paper_methods",    "weight": 0.8, "edgeType": "cites" },
+    { "source": "paper_recent",      "target": "paper_review",     "weight": 0.7, "edgeType": "cites" },
+    { "source": "paper_recent",      "target": "paper_methods",    "weight": 0.6, "edgeType": "cites" },
+    { "source": "paper_replication", "target": "paper_seminal",    "weight": 0.9, "edgeType": "cites" },
+    { "source": "paper_methods",     "target": "paper_seminal",    "weight": 0.7, "edgeType": "cites" },
+    { "source": "paper_seminal",     "target": "paper_methods",    "weight": 0.5, "edgeType": "co-cited" },
+    { "source": "author_smith",      "target": "paper_seminal",    "weight": 0.9, "edgeType": "co-authored" },
+    { "source": "keyword_ml",        "target": "paper_methods",    "weight": 0.6, "edgeType": "relates_to" },
+    { "source": "keyword_ml",        "target": "paper_recent",     "weight": 0.7, "edgeType": "relates_to" }
+  ]
+}

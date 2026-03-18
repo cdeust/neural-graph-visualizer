@@ -8,6 +8,7 @@ const { createGraphTools } = require("./tools/graph-tools");
 const { createImportTools } = require("./tools/import-tools");
 const { createVisualizationTools } = require("./tools/visualization-tools");
 const { createIndexTools } = require("./tools/index-tools");
+const { createExportTools } = require("./tools/export-tools");
 
 const config = loadConfig();
 
@@ -16,6 +17,7 @@ const TOOLS = {
   ...createImportTools(config),
   ...createVisualizationTools(config, { httpServer: { startUIServer } }),
   ...createIndexTools(config),
+  ...createExportTools(config),
 };
 
 const SERVER_INFO = { name: "neural-graph-visualizer", version: "1.0.0" };

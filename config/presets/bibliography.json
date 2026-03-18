@@ -1,0 +1,17 @@
+{
+  "name": "Bibliography Network",
+  "accentColor": "#4488ff",
+  "nodeTypes": {
+    "paper":    { "color": "#4488ff", "shape": "sphere", "label": "Paper" },
+    "author":   { "color": "#26de81", "shape": "hex",    "label": "Author" },
+    "journal":  { "color": "#ff6b35", "shape": "sphere", "label": "Journal" },
+    "keyword":  { "color": "#a55eea", "shape": "sphere", "label": "Keyword" },
+    "dataset":  { "color": "#00d2ff", "shape": "hex",    "label": "Dataset" }
+  },
+  "categoryRules": {
+    "methodology": ["method", "technique", "approach", "algorithm"],
+    "theory":      ["theory", "framework", "model", "hypothesis"],
+    "empirical":   ["study", "experiment", "trial", "observation"],
+    "review":      ["review", "survey", "meta-analysis", "systematic"]
+  }
+}

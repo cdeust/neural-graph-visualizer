@@ -1,0 +1,15 @@
+{
+  "name": "Co-Authorship Network",
+  "accentColor": "#26de81",
+  "nodeTypes": {
+    "author":      { "color": "#26de81", "shape": "hex",    "label": "Author" },
+    "institution": { "color": "#ff6b35", "shape": "sphere", "label": "Institution" },
+    "paper":       { "color": "#4488ff", "shape": "sphere", "label": "Paper" },
+    "grant":       { "color": "#ffaa00", "shape": "hex",    "label": "Grant" }
+  },
+  "categoryRules": {
+    "PI":           ["principal", "lead", "senior"],
+    "collaborator": ["co-author", "collaborat", "joint"],
+    "student":      ["PhD", "graduate", "postdoc"]
+  }
+}

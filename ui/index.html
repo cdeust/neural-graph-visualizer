@@ -22,7 +22,19 @@
   <input type="text" id="search-box" placeholder="Search neural network...">
   <div class="filter-bar" id="type-filter-bar"></div>
   <button class="layout-toggle" id="layout-toggle" title="Toggle timeline/cluster layout (T)">Cluster</button>
+  <select id="mode-selector" class="header-select" title="View mode">
+    <option value="generic">Generic</option>
+    <option value="bibliography">Bibliography</option>
+    <option value="pathway">Pathway</option>
+    <option value="concept-map">Concept Map</option>
+  </select>
   <button class="analytics-toggle" id="analytics-toggle" title="Analytics dashboard (A)">Analytics</button>
+  <div class="export-group">
+    <button class="header-btn" id="btn-screenshot" title="Screenshot (S)">PNG</button>
+    <button class="header-btn" id="btn-export-json" title="Export JSON">JSON</button>
+    <button class="header-btn" id="btn-export-csv" title="Export CSV">CSV</button>
+    <button class="header-btn" id="btn-export-gexf" title="Export GEXF (Gephi)">GEXF</button>
+  </div>
   <div class="stats" id="stats-bar"></div>
 </div>
 
@@ -44,12 +56,25 @@
   <h2 id="panel-name"></h2>
   <div class="type-badge" id="panel-type"></div>
   <div class="project-name" id="panel-project"></div>
-  <div class="description" id="panel-desc"></div>
-  <div class="body-content" id="panel-body"></div>
-  <div class="meta-row" id="panel-meta"></div>
-  <div class="tag-pills" id="panel-tags"></div>
-  <div class="cross-ref-list" id="panel-crossrefs"></div>
-  <div class="status-indicator" id="panel-status"></div>
+  <div class="panel-tabs">
+    <button class="panel-tab active" data-tab="overview">Overview</button>
+    <button class="panel-tab" data-tab="connections">Connections</button>
+    <button class="panel-tab" data-tab="properties">Properties</button>
+  </div>
+  <div class="panel-tab-content" id="tab-overview">
+    <div class="description" id="panel-desc"></div>
+    <div class="body-content" id="panel-body"></div>
+    <div class="meta-row" id="panel-meta"></div>
+    <div class="tag-pills" id="panel-tags"></div>
+    <div class="cross-ref-list" id="panel-crossrefs"></div>
+    <div class="status-indicator" id="panel-status"></div>
+  </div>
+  <div class="panel-tab-content" id="tab-connections" style="display:none">
+    <div id="panel-connections-list"></div>
+  </div>
+  <div class="panel-tab-content" id="tab-properties" style="display:none">
+    <div class="metadata-grid" id="panel-properties-grid"></div>
+  </div>
 </div>
 
 <div id="analytics-panel">
@@ -94,6 +119,29 @@
 <script>
 /*__NGV_CONFIG__*/
 </script>
+<!-- Modules loaded in dependency order (no bundler) -->
+<script src="/js/core/data.js"></script>
+<script src="/js/core/scene.js"></script>
+<script src="/js/visual/nodes.js"></script>
+<script src="/js/visual/edges.js"></script>
+<script src="/js/visual/effects.js"></script>
+<script src="/js/visual/performance.js"></script>
+<script src="/js/layout/force.js"></script>
+<script src="/js/layout/pathway.js"></script>
+<script src="/js/layout/cell.js"></script>
+<script src="/js/interaction/raycast.js"></script>
+<script src="/js/interaction/tooltip.js"></script>
+<script src="/js/interaction/panel.js"></script>
+<script src="/js/interaction/filters.js"></script>
+<script src="/js/interaction/export.js"></script>
+<script src="/js/interaction/semantic-zoom.js"></script>
+<script src="/js/interaction/minimap.js"></script>
+<script src="/js/interaction/context-menu.js"></script>
+<script src="/js/interaction/shortcuts.js"></script>
+<script src="/js/interaction/lasso.js"></script>
+<script src="/js/interaction/settings-panel.js"></script>
+<script src="/js/analytics/charts.js"></script>
+<script src="/js/modes/mode-manager.js"></script>
 <script src="/js/main.js"></script>
 </body>
 </html>

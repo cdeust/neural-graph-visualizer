@@ -1,0 +1,16 @@
+{
+  "name": "Concept Map",
+  "accentColor": "#45aaf2",
+  "nodeTypes": {
+    "concept":    { "color": "#45aaf2", "shape": "sphere", "label": "Concept" },
+    "definition": { "color": "#26de81", "shape": "sphere", "label": "Definition" },
+    "example":    { "color": "#ff6b35", "shape": "hex",    "label": "Example" },
+    "question":   { "color": "#ff4081", "shape": "sphere", "label": "Question" },
+    "resource":   { "color": "#a55eea", "shape": "sphere", "label": "Resource" }
+  },
+  "categoryRules": {
+    "foundational": ["basic", "fundamental", "introduction", "prerequisite"],
+    "intermediate": ["builds on", "extends", "applies"],
+    "advanced":     ["research", "cutting-edge", "specialized"]
+  }
+}

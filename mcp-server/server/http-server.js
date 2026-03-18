@@ -149,7 +149,7 @@ function resetIdleTimer() {
       activeServer = null;
       process.stderr.write("[ngv] UI server closed (idle timeout)\n");
     }
-  }, 5 * 60 * 1000);
+  }, 30 * 60 * 1000);
 }
 
 function getActiveServer() {

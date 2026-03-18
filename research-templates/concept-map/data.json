@@ -1,0 +1,88 @@
+{
+  "_config": {
+    "name": "Concept Map",
+    "accentColor": "#45aaf2",
+    "nodeTypes": {
+      "concept":    { "color": "#45aaf2", "shape": "sphere", "label": "Concept" },
+      "definition": { "color": "#26de81", "shape": "sphere", "label": "Definition" },
+      "example":    { "color": "#ff6b35", "shape": "hex",    "label": "Example" },
+      "question":   { "color": "#ff4081", "shape": "sphere", "label": "Question" }
+    },
+    "_layout": { "strategy": "cascade" }
+  },
+
+  "nodes": [
+    {
+      "id": "c_biology",
+      "name": "Cell Biology",
+      "type": "concept",
+      "project": "study-path",
+      "description": "The study of cell structure and function",
+      "mastery": 0.8,
+      "rank": 0
+    },
+    {
+      "id": "c_dna",
+      "name": "DNA Structure",
+      "type": "concept",
+      "project": "study-path",
+      "description": "Double helix structure of deoxyribonucleic acid",
+      "mastery": 0.6,
+      "prerequisite": "c_biology",
+      "rank": 1
+    },
+    {
+      "id": "c_transcription",
+      "name": "Transcription",
+      "type": "concept",
+      "project": "study-path",
+      "description": "Process of copying DNA to mRNA",
+      "mastery": 0.4,
+      "prerequisite": "c_dna",
+      "rank": 2
+    },
+    {
+      "id": "c_translation",
+      "name": "Translation",
+      "type": "concept",
+      "project": "study-path",
+      "description": "Process of building proteins from mRNA",
+      "mastery": 0.2,
+      "prerequisite": "c_transcription",
+      "rank": 3
+    },
+    {
+      "id": "d_codon",
+      "name": "Codon",
+      "type": "definition",
+      "project": "study-path",
+      "description": "A sequence of three nucleotides forming a unit of genetic code",
+      "mastery": 0.3
+    },
+    {
+      "id": "e_pcr",
+      "name": "PCR Example",
+      "type": "example",
+      "project": "study-path",
+      "description": "Polymerase chain reaction as a practical application of DNA knowledge"
+    },
+    {
+      "id": "q_mutation",
+      "name": "What causes mutations?",
+      "type": "question",
+      "project": "study-path",
+      "description": "Study question about mutation mechanisms",
+      "mastery": 0.1
+    }
+  ],
+
+  "edges": [
+    { "source": "c_biology",       "target": "c_dna",           "weight": 0.9, "edgeType": "proceeds_to" },
+    { "source": "c_dna",           "target": "c_transcription", "weight": 0.9, "edgeType": "proceeds_to" },
+    { "source": "c_transcription", "target": "c_translation",   "weight": 0.9, "edgeType": "proceeds_to" },
+    { "source": "d_codon",         "target": "c_translation",   "weight": 0.7, "edgeType": "relates_to" },
+    { "source": "e_pcr",           "target": "c_dna",           "weight": 0.6, "edgeType": "relates_to" },
+    { "source": "q_mutation",      "target": "c_dna",           "weight": 0.5, "edgeType": "relates_to" },
+    { "source": "q_mutation",      "target": "c_transcription", "weight": 0.4, "edgeType": "relates_to" }
+  ]
+}

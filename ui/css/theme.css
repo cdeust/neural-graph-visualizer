@@ -96,6 +96,21 @@ body {
 .layout-toggle:hover, .analytics-toggle:hover { background: rgba(0,210,255,0.1); box-shadow: 0 0 12px rgba(0,210,255,0.1); }
 .layout-toggle.active, .analytics-toggle.active { background: rgba(0,210,255,0.15); border-color: #00d2ff; text-shadow: 0 0 10px rgba(0,210,255,0.5); }
 
+/* Mode selector */
+.header-select {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,210,255,0.12);
+  border-radius: 3px;
+  padding: 3px 8px;
+  color: #7a8a9a;
+  font-family: inherit;
+  font-size: 10px;
+  outline: none;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+.header-select option { background: #0a0e14; color: #c8d6e5; }
+
 /* Second filter row */
 #filter-row-2 {
   position: fixed;
@@ -197,6 +212,72 @@ body {
   transition: all 0.2s;
 }
 .cross-ref-link:hover { background: rgba(255,170,0,0.15); }
+
+/* Panel tabs */
+.panel-tabs {
+  display: flex; gap: 2px; margin: 10px 0 12px;
+  border-bottom: 1px solid rgba(0,210,255,0.08);
+  padding-bottom: 8px;
+}
+.panel-tab {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 3px 3px 0 0;
+  padding: 5px 12px;
+  color: #3a4a5a;
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.panel-tab:hover { background: rgba(0,210,255,0.06); color: #7a8a9a; }
+.panel-tab.active {
+  background: rgba(0,210,255,0.08);
+  border-color: rgba(0,210,255,0.2);
+  color: #c8d6e5;
+  border-bottom-color: transparent;
+}
+
+/* Connections list */
+.connection-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; margin-bottom: 2px;
+  border-radius: 4px; cursor: pointer;
+  transition: background 0.2s;
+  font-size: 11px;
+}
+.connection-item:hover { background: rgba(0,210,255,0.06); }
+.connection-weight {
+  font-size: 9px; color: #3a5a7a;
+  min-width: 32px; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.connection-name { color: #c8d6e5; flex: 1; }
+.edge-type-badge {
+  font-size: 8px; padding: 1px 5px; border-radius: 2px;
+  background: rgba(0,210,255,0.08);
+  border: 1px solid rgba(0,210,255,0.15);
+  color: #5a7a9a;
+  letter-spacing: 0.3px;
+}
+
+/* Export buttons */
+.export-group { display: flex; gap: 2px; }
+.header-btn {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,210,255,0.1);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-family: inherit;
+  font-size: 9px;
+  color: #3a5a7a;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.header-btn:hover { background: rgba(0,210,255,0.1); color: #7a8a9a; }
 
 /* Tooltip */
 #tooltip {
