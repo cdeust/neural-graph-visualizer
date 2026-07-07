@@ -2,6 +2,8 @@
 
 Interactive 3D knowledge graph visualization with pathway-aware layouts, molecule viewer, and configurable templates. Built with Three.js — zero dependencies.
 
+<p align="center"><img src="docs/assets/banner.svg" alt="neural-graph-visualizer — zero-dependency 3D knowledge graph with pathway-aware Three.js layouts" width="100%"/></p>
+
 ![Pathway-Aware Cascade Layout](docs/assets/cascade-layout.png)
 
 ![Molecule Viewer](docs/assets/molecule-viewer.png)
